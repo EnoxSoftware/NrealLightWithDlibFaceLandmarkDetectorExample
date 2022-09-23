@@ -5,8 +5,8 @@
 [![](http://img.youtube.com/vi/4eEFfsPOF_0/0.jpg)](https://youtu.be/4eEFfsPOF_0)
 
 
-## Demo Hololens App
-* [NrealLightWithDlibFaceLandmarkDetectorExample.zip](https://github.com/EnoxSoftware/NrealLightWithDlibFaceLandmarkDetectorExample/releases)
+## Demo NrealLight App
+* [NrealLightWithDlibFaceLandmarkDetectorExample.apk](https://github.com/EnoxSoftware/NrealLightWithDlibFaceLandmarkDetectorExample/releases)
 
 
 ## Environment
