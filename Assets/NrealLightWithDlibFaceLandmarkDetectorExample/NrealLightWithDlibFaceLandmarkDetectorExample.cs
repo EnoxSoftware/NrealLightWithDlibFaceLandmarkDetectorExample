@@ -36,7 +36,7 @@ namespace NrealLightWithDlibFaceLandmarkDetectorExample
         {
             get
             {
-                return dlibShapePredictorName.ToString() + ".dat";
+                return "DlibFaceLandmarkDetector/" + dlibShapePredictorName.ToString() + ".dat";
             }
         }
 
