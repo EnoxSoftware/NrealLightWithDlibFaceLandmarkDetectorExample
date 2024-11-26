@@ -1,6 +1,6 @@
 using OpenCVForUnity.CoreModule;
 
-namespace OpenCVForUnity.RectangleTrack
+namespace NrealLightWithDlibFaceLandmarkDetectorExample.RectangleTrack
 {
     public class TrackedRect : Rect
     {

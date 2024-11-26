@@ -1,7 +1,7 @@
 using OpenCVForUnity.CoreModule;
 using PositionsVector = System.Collections.Generic.List<OpenCVForUnity.CoreModule.Rect>;
 
-namespace OpenCVForUnity.RectangleTrack
+namespace NrealLightWithDlibFaceLandmarkDetectorExample.RectangleTrack
 {
     public enum TrackedState : int
     {

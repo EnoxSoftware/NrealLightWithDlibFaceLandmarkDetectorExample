@@ -2,12 +2,12 @@
 
 using DlibFaceLandmarkDetector;
 using NrealLightWithOpenCVForUnity.UnityUtils.Helper;
+using NrealLightWithDlibFaceLandmarkDetectorExample.RectangleTrack;
 using NRKernal;
 using OpenCVForUnity.Calib3dModule;
 using OpenCVForUnity.CoreModule;
 using OpenCVForUnity.ImgprocModule;
 using OpenCVForUnity.ObjdetectModule;
-using OpenCVForUnity.RectangleTrack;
 using OpenCVForUnity.UnityUtils;
 using OpenCVForUnity.UnityUtils.Helper;
 using System;
@@ -16,6 +16,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Rect = OpenCVForUnity.CoreModule.Rect;
+using System.Threading;
 
 namespace NrealLightWithDlibFaceLandmarkDetectorExample
 {
@@ -23,7 +24,7 @@ namespace NrealLightWithDlibFaceLandmarkDetectorExample
     /// Nreal AR Head Example
     /// An example of AR head projection using OpenCVForUnity and DlibLandmarkDetector on Hololens.
     /// </summary>
-    [RequireComponent(typeof(NRCamTextureToMatHelper), typeof(ImageOptimizationHelper))]
+    [RequireComponent(typeof(NRCamTexture2MatHelper), typeof(ImageOptimizationHelper))]
     public class NrealARHeadExample : MonoBehaviour
     {
         [SerializeField, HeaderAttribute("Preview")]
@@ -262,7 +263,7 @@ namespace NrealLightWithDlibFaceLandmarkDetectorExample
         /// <summary>
         /// The webcam texture to mat helper.
         /// </summary>
-        NRCamTextureToMatHelper webCamTextureToMatHelper;
+        NRCamTexture2MatHelper webCamTextureToMatHelper;
 
         /// <summary>
         /// The image optimization helper.
@@ -364,7 +365,7 @@ namespace NrealLightWithDlibFaceLandmarkDetectorExample
         /// </summary>
         Camera mainCamera;
 
-
+        /*
         // Use this for initialization
         protected void Start()
         {
@@ -379,8 +380,8 @@ namespace NrealLightWithDlibFaceLandmarkDetectorExample
             enableLerpFilterToggle.isOn = enableLerpFilter;
 
             imageOptimizationHelper = gameObject.GetComponent<ImageOptimizationHelper>();
-            webCamTextureToMatHelper = gameObject.GetComponent<NRCamTextureToMatHelper>();
-            webCamTextureToMatHelper.outputColorFormat = WebCamTextureToMatHelper.ColorFormat.GRAY;
+            webCamTextureToMatHelper = gameObject.GetComponent<NRCamTexture2MatHelper>();
+            webCamTextureToMatHelper.outputColorFormat = Source2MatHelperColorFormat.GRAY;
             webCamTextureToMatHelper.Initialize();
 
             rectangleTracker = new RectangleTracker();
@@ -446,6 +447,132 @@ namespace NrealLightWithDlibFaceLandmarkDetectorExample
             opticalFlowFilter = new OFPointsFilter((int)faceLandmarkDetector.GetShapePredictorNumParts());
             opticalFlowFilter.diffCheckSensitivity /= imageOptimizationHelper.downscaleRatio;
         }
+        */
+
+
+        //////
+        string cascade_filepath;
+        string cascade4Thread_filepath;
+        string dlibShapePredictor_filepath;
+        string dlibShapePredictor4Thread_filepath;
+
+        /// <summary>
+        /// The CancellationTokenSource.
+        /// </summary>
+        CancellationTokenSource cts = new CancellationTokenSource();
+
+        // Use this for initialization
+        async void Start()
+        {
+            displayCameraPreviewToggle.isOn = displayCameraPreview;
+            enableDownScaleToggle.isOn = enableDownScale;
+            useSeparateDetectionToggle.isOn = useSeparateDetection;
+            useOpenCVDetectorToggle.isOn = useOpenCVDetector;
+            displayAxesToggle.isOn = displayAxes;
+            displayHeadToggle.isOn = displayHead;
+            displayEffectsToggle.isOn = displayEffects;
+            enableOpticalFlowFilterToggle.isOn = enableOpticalFlowFilter;
+            enableLerpFilterToggle.isOn = enableLerpFilter;
+
+            imageOptimizationHelper = gameObject.GetComponent<ImageOptimizationHelper>();
+            webCamTextureToMatHelper = gameObject.GetComponent<NRCamTexture2MatHelper>();
+
+            rectangleTracker = new RectangleTracker();
+
+
+            // Asynchronously retrieves the readable file path from the StreamingAssets directory.
+            Debug.Log("Preparing file access...");
+
+            cascade_filepath = await DlibFaceLandmarkDetector.UnityUtils.Utils.getFilePathAsyncTask("OpenCVForUnity/objdetect/lbpcascade_frontalface.xml", cancellationToken: cts.Token);
+            cascade4Thread_filepath = await DlibFaceLandmarkDetector.UnityUtils.Utils.getFilePathAsyncTask("OpenCVForUnity/objdetect/haarcascade_frontalface_alt.xml", cancellationToken: cts.Token);
+            dlibShapePredictorFileName = NrealLightWithDlibFaceLandmarkDetectorExample.dlibShapePredictorFileName;
+            dlibShapePredictor_filepath = await DlibFaceLandmarkDetector.UnityUtils.Utils.getFilePathAsyncTask(dlibShapePredictorFileName, cancellationToken: cts.Token);
+            dlibShapePredictor4Thread_filepath = await DlibFaceLandmarkDetector.UnityUtils.Utils.getFilePathAsyncTask("DlibFaceLandmarkDetector/sp_human_face_6.dat", cancellationToken: cts.Token);
+
+            Debug.Log("Preparing file access complete!");
+
+            Run();
+        }
+
+        // Use this for initialization
+        void Run()
+        {
+            cascade = new CascadeClassifier();
+            cascade.load(cascade_filepath);
+            if (cascade.empty())
+            {
+                Debug.LogError("cascade file is not loaded. Please copy from “OpenCVForUnity/StreamingAssets/OpenCVForUnity/objdetect/” to “Assets/StreamingAssets/OpenCVForUnity/objdetect/” folder. ");
+            }
+
+            cascade4Thread = new CascadeClassifier();
+            cascade4Thread.load(cascade4Thread_filepath);
+            if (cascade4Thread.empty())
+            {
+                Debug.LogError("cascade file is not loaded. Please copy from “OpenCVForUnity/StreamingAssets/OpenCVForUnity/objdetect/” to “Assets/StreamingAssets/OpenCVForUnity/objdetect/” folder. ");
+            }
+
+            if (string.IsNullOrEmpty(dlibShapePredictor_filepath))
+            {
+                Debug.LogError("shape predictor file does not exist. Please copy from “DlibFaceLandmarkDetector/StreamingAssets/DlibFaceLandmarkDetector/” to “Assets/StreamingAssets/DlibFaceLandmarkDetector/” folder. ");
+            }
+            faceLandmarkDetector = new FaceLandmarkDetector(dlibShapePredictor_filepath);
+
+            if (string.IsNullOrEmpty(dlibShapePredictor4Thread_filepath))
+            {
+                Debug.LogError("shape predictor file does not exist. Please copy from “DlibFaceLandmarkDetector/StreamingAssets/DlibFaceLandmarkDetector/” to “Assets/StreamingAssets/DlibFaceLandmarkDetector/” folder. ");
+            }
+            faceLandmarkDetector4Thread = new FaceLandmarkDetector(dlibShapePredictor4Thread_filepath);
+
+
+            // set 3d face object points. (right-handed coordinates system)
+            objectPoints68 = new MatOfPoint3f(
+                new Point3(-34, 90, 83),//l eye (Interpupillary breadth)
+                new Point3(34, 90, 83),//r eye (Interpupillary breadth)
+                new Point3(0.0, 50, 117),//nose (Tip)
+                new Point3(0.0, 32, 97),//nose (Subnasale)
+                new Point3(-79, 90, 10),//l ear (Bitragion breadth)
+                new Point3(79, 90, 10)//r ear (Bitragion breadth)
+            );
+
+            objectPoints17 = new MatOfPoint3f(
+                new Point3(-34, 90, 83),//l eye (Interpupillary breadth)
+                new Point3(34, 90, 83),//r eye (Interpupillary breadth)
+                new Point3(0.0, 50, 117),//nose (Tip)
+                new Point3(0.0, 32, 97),//nose (Subnasale)
+                new Point3(-79, 90, 10),//l ear (Bitragion breadth)
+                new Point3(79, 90, 10)//r ear (Bitragion breadth)
+            );
+
+            objectPoints6 = new MatOfPoint3f(
+                new Point3(-34, 90, 83),//l eye (Interpupillary breadth)
+                new Point3(34, 90, 83),//r eye (Interpupillary breadth)
+                new Point3(0.0, 50, 117),//nose (Tip)
+                new Point3(0.0, 32, 97)//nose (Subnasale)
+            );
+
+            objectPoints5 = new MatOfPoint3f(
+                new Point3(-23, 90, 83),//l eye (Inner corner of the eye)
+                new Point3(23, 90, 83),//r eye (Inner corner of the eye)
+                new Point3(-50, 90, 80),//l eye (Tail of the eye)
+                new Point3(50, 90, 80),//r eye (Tail of the eye)
+                new Point3(0.0, 32, 97)//nose (Subnasale)
+            );
+
+            // adjust object points to the scale of real world space.
+            AjustPointScale(objectPoints68, 0.001);
+            AjustPointScale(objectPoints17, 0.001);
+            AjustPointScale(objectPoints6, 0.001);
+            AjustPointScale(objectPoints5, 0.001);
+
+            imagePoints = new MatOfPoint2f();
+
+            opticalFlowFilter = new OFPointsFilter((int)faceLandmarkDetector.GetShapePredictorNumParts());
+            opticalFlowFilter.diffCheckSensitivity /= imageOptimizationHelper.downscaleRatio;
+
+            webCamTextureToMatHelper.outputColorFormat = Source2MatHelperColorFormat.GRAY;
+            webCamTextureToMatHelper.Initialize();
+        }
+        //////
 
         /// <summary>
         /// Raises the web cam texture to mat helper initialized event.
@@ -559,7 +686,7 @@ namespace NrealLightWithDlibFaceLandmarkDetectorExample
 
             mouthParticleSystem = mouth.GetComponentsInChildren<ParticleSystem>(true);
 
-
+            /*
             //grayMat = new Mat();
             cascade = new CascadeClassifier();
             cascade.load(Utils.getFilePath("OpenCVForUnity/objdetect/lbpcascade_frontalface.xml"));
@@ -581,6 +708,11 @@ namespace NrealLightWithDlibFaceLandmarkDetectorExample
                 Debug.LogError("cascade file is not loaded. Please copy from “OpenCVForUnity/StreamingAssets/OpenCVForUnity/objdetect/” to “Assets/StreamingAssets/OpenCVForUnity/objdetect/” folder. ");
             }
 #endif
+            */
+
+            /////
+            grayMat4Thread = new Mat();
+            /////
         }
 
         /// <summary>
@@ -604,14 +736,14 @@ namespace NrealLightWithDlibFaceLandmarkDetectorExample
                 texture = null;
             }
 
-            if (cascade != null)
-                cascade.Dispose();
+            //if (cascade != null)
+            //    cascade.Dispose();
 
             if (grayMat4Thread != null)
                 grayMat4Thread.Dispose();
 
-            if (cascade4Thread != null)
-                cascade4Thread.Dispose();
+            //if (cascade4Thread != null)
+            //    cascade4Thread.Dispose();
 
             rectangleTracker.Reset();
 
@@ -635,12 +767,13 @@ namespace NrealLightWithDlibFaceLandmarkDetectorExample
         }
 
         /// <summary>
-        /// Raises the web cam texture to mat helper error occurred event.
+        /// Raises the webcam texture to mat helper error occurred event.
         /// </summary>
         /// <param name="errorCode">Error code.</param>
-        public void OnWebCamTextureToMatHelperErrorOccurred(WebCamTextureToMatHelper.ErrorCode errorCode)
+        /// <param name="message">Message.</param>
+        public void OnWebCamTextureToMatHelperErrorOccurred(Source2MatHelperErrorCode errorCode, string message)
         {
-            Debug.Log("OnWebCamTextureToMatHelperErrorOccurred " + errorCode);
+            Debug.Log("OnWebCamTextureToMatHelperErrorOccurred " + errorCode + ":" + message);
         }
 
         // Update is called once per frame
@@ -816,7 +949,7 @@ namespace NrealLightWithDlibFaceLandmarkDetectorExample
 
                 if (displayCameraPreview)
                 {
-                    Utils.fastMatToTexture2D(grayMat, texture);
+                    Utils.matToTexture2D(grayMat, texture);
                 }
             }
         }
@@ -1243,6 +1376,15 @@ namespace NrealLightWithDlibFaceLandmarkDetectorExample
 
             if (opticalFlowFilter != null)
                 opticalFlowFilter.Dispose();
+
+            if (cascade != null)
+                cascade.Dispose();
+
+            if (cascade4Thread != null)
+                cascade4Thread.Dispose();
+
+            if (cts != null)
+                cts.Dispose();
         }
 
         /// <summary>
@@ -1282,7 +1424,7 @@ namespace NrealLightWithDlibFaceLandmarkDetectorExample
         /// </summary>
         public void OnChangeCameraButtonClick()
         {
-            webCamTextureToMatHelper.requestedIsFrontFacing = !webCamTextureToMatHelper.IsFrontFacing();
+            webCamTextureToMatHelper.requestedIsFrontFacing = !webCamTextureToMatHelper.requestedIsFrontFacing;
         }
 
         /// <summary>

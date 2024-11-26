@@ -7,6 +7,7 @@ using OpenCVForUnity.ImgprocModule;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -76,9 +77,9 @@ namespace NrealLightWithDlibFaceLandmarkDetectorExample
         /// <summary>
         /// The dlib shape predictor file path.
         /// </summary>
-        string dlibShapePredictorFilePath;
+        //string dlibShapePredictorFilePath;
 
-
+        /*
         protected void Start()
         {
             dlibShapePredictorFileName = NrealLightWithDlibFaceLandmarkDetectorExample.dlibShapePredictorFileName;
@@ -90,6 +91,40 @@ namespace NrealLightWithDlibFaceLandmarkDetectorExample
             m_CanvasRenderer = m_Canvas.GetComponent<Renderer>() as Renderer;
             m_CanvasRenderer.enabled = false;
         }
+        */
+
+        ////
+        /// <summary>
+        /// The CancellationTokenSource.
+        /// </summary>
+        CancellationTokenSource cts = new CancellationTokenSource();
+
+        // Use this for initialization
+        async void Start()
+        {
+            // Asynchronously retrieves the readable file path from the StreamingAssets directory.
+            Debug.Log("Preparing file access...");
+
+            dlibShapePredictorFileName = NrealLightWithDlibFaceLandmarkDetectorExample.dlibShapePredictorFileName;
+            string dlibShapePredictor_filepath = await DlibFaceLandmarkDetector.UnityUtils.Utils.getFilePathAsyncTask(dlibShapePredictorFileName, cancellationToken: cts.Token);
+
+            Debug.Log("Preparing file access complete!");
+
+            if (string.IsNullOrEmpty(dlibShapePredictor_filepath))
+            {
+                Debug.LogError("shape predictor file does not exist. Please copy from “DlibFaceLandmarkDetector/StreamingAssets/DlibFaceLandmarkDetector/” to “Assets/StreamingAssets/DlibFaceLandmarkDetector/” folder. ");
+            }
+            faceLandmarkDetector = new FaceLandmarkDetector(dlibShapePredictor_filepath);
+
+
+            isBlendModeBlendToggle.isOn = isBlendModeBlend;
+            saveTextureToGalleryToggle.isOn = saveTextureToGallery;
+
+            m_Canvas = GameObject.Find("PhotoCaptureCanvas");
+            m_CanvasRenderer = m_Canvas.GetComponent<Renderer>() as Renderer;
+            m_CanvasRenderer.enabled = false;
+        }
+        //////
 
         /// <summary> Use this for initialization. </summary>
         void Create(Action<NRPhotoCapture> onCreated)
@@ -199,12 +234,12 @@ namespace NrealLightWithDlibFaceLandmarkDetectorExample
                 m_Texture = new Texture2D(m_CameraResolution.width, m_CameraResolution.height, TextureFormat.RGB24, false);
                 rgbMat = new Mat(m_Texture.height, m_Texture.width, CvType.CV_8UC3);
 
-                dlibShapePredictorFilePath = DlibFaceLandmarkDetector.UnityUtils.Utils.getFilePath(dlibShapePredictorFileName);
-                if (string.IsNullOrEmpty(dlibShapePredictorFilePath))
-                {
-                    Debug.LogError("shape predictor file does not exist. Please copy from “DlibFaceLandmarkDetector/StreamingAssets/DlibFaceLandmarkDetector/” to “Assets/StreamingAssets/DlibFaceLandmarkDetector/” folder. ");
-                }
-                faceLandmarkDetector = new FaceLandmarkDetector(dlibShapePredictorFilePath);
+                //dlibShapePredictorFilePath = DlibFaceLandmarkDetector.UnityUtils.Utils.getFilePath(dlibShapePredictorFileName);
+                //if (string.IsNullOrEmpty(dlibShapePredictorFilePath))
+                //{
+                //    Debug.LogError("shape predictor file does not exist. Please copy from “DlibFaceLandmarkDetector/StreamingAssets/DlibFaceLandmarkDetector/” to “Assets/StreamingAssets/DlibFaceLandmarkDetector/” folder. ");
+                //}
+                //faceLandmarkDetector = new FaceLandmarkDetector(dlibShapePredictorFilePath);
             }
 
             // Copy the raw image data into our target texture
@@ -357,6 +392,9 @@ namespace NrealLightWithDlibFaceLandmarkDetectorExample
 
             if (faceLandmarkDetector != null)
                 faceLandmarkDetector.Dispose();
+
+            if (cts != null)
+                cts.Dispose();
         }
 
 

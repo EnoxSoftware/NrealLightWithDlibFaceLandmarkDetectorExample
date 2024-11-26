@@ -1,4 +1,4 @@
-namespace OpenCVForUnity.RectangleTrack
+namespace NrealLightWithDlibFaceLandmarkDetectorExample.RectangleTrack
 {
     public class TrackerParameters
     {
