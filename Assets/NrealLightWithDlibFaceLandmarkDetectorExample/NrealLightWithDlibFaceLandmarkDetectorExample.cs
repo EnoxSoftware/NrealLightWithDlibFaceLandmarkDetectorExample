@@ -1,5 +1,7 @@
+using DlibFaceLandmarkDetector.UnityIntegration;
 using NRKernal;
 using OpenCVForUnity.CoreModule;
+using OpenCVForUnity.UnityIntegration;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -45,8 +47,8 @@ namespace NrealLightWithDlibFaceLandmarkDetectorExample
         {
             exampleTitle.text = "NrealLightWithDlibFaceLandmarkDetector Example " + Application.version;
 
-            versionInfo.text = Core.NATIVE_LIBRARY_NAME + " " + OpenCVForUnity.UnityUtils.Utils.getVersion() + " (" + Core.VERSION + ")";
-            versionInfo.text += " / " + "dlibfacelandmarkdetector" + " " + DlibFaceLandmarkDetector.UnityUtils.Utils.getVersion();
+            versionInfo.text = Core.NATIVE_LIBRARY_NAME + " " + OpenCVEnv.GetVersion() + " (" + Core.VERSION + ")";
+            versionInfo.text += " / " + "dlibfacelandmarkdetector" + " " + DlibEnv.GetVersion();
             versionInfo.text += " / UnityEditor " + Application.unityVersion;
 #if UNITY_ANDROID && !UNITY_EDITOR
             versionInfo.text += " / NRSDK " + NRVersionInfo.GetVersion();

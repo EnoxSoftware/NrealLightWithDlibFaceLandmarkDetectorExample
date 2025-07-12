@@ -15,8 +15,8 @@
 * Nreal Light (XREAL Light)
 * Unity 2021.3.35f1+ (NRSDK supports the development environment of Unity 2019.4.X and above)
 * [NRSDK](https://docs.xreal.com/Release%20Note/NRSDK%202.1.0) NRSDKForUnity 2.1.0 
-* [OpenCV for Unity](https://assetstore.unity.com/packages/tools/integration/opencv-for-unity-21088?aid=1011l4ehR) 2.6.4+ 
-* [Dlib FaceLandmarkDetector](https://assetstore.unity.com/packages/tools/integration/dlib-facelandmark-detector-64314?aid=1011l4ehR) 1.4.1+ 
+* [OpenCV for Unity](https://assetstore.unity.com/packages/tools/integration/opencv-for-unity-21088?aid=1011l4ehR) 3.0.0+ 
+* [Dlib FaceLandmarkDetector](https://assetstore.unity.com/packages/tools/integration/dlib-facelandmark-detector-64314?aid=1011l4ehR) 2.0.0+ 
 
 
 ## Setup

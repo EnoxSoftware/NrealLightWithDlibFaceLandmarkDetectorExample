@@ -1,9 +1,11 @@
 using DlibFaceLandmarkDetector;
+using DlibFaceLandmarkDetector.UnityIntegration;
 using NRKernal;
 using NRKernal.NRExamples;
 using NRKernal.Record;
 using OpenCVForUnity.CoreModule;
 using OpenCVForUnity.ImgprocModule;
+using OpenCVForUnity.UnityIntegration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -106,7 +108,7 @@ namespace NrealLightWithDlibFaceLandmarkDetectorExample
             Debug.Log("Preparing file access...");
 
             dlibShapePredictorFileName = NrealLightWithDlibFaceLandmarkDetectorExample.dlibShapePredictorFileName;
-            string dlibShapePredictor_filepath = await DlibFaceLandmarkDetector.UnityUtils.Utils.getFilePathAsyncTask(dlibShapePredictorFileName, cancellationToken: cts.Token);
+            string dlibShapePredictor_filepath = await DlibEnv.GetFilePathTaskAsync(dlibShapePredictorFileName, cancellationToken: cts.Token);
 
             Debug.Log("Preparing file access complete!");
 
@@ -246,9 +248,9 @@ namespace NrealLightWithDlibFaceLandmarkDetectorExample
             photoCaptureFrame.UploadImageDataToTexture(m_Texture);
 
 
-            OpenCVForUnity.UnityUtils.Utils.texture2DToMat(m_Texture, rgbMat);
+            OpenCVMatUtils.Texture2DToMat(m_Texture, rgbMat);
 
-            OpenCVForUnityUtils.SetImage(faceLandmarkDetector, rgbMat);
+            DlibOpenCVUtils.SetImage(faceLandmarkDetector, rgbMat);
 
             //detect face
             List<FaceLandmarkDetector.RectDetection> detectResult = faceLandmarkDetector.DetectRectDetection();
@@ -269,15 +271,15 @@ namespace NrealLightWithDlibFaceLandmarkDetectorExample
 
                 Debug.Log("face points count : " + points.Count);
                 //draw landmark points
-                OpenCVForUnityUtils.DrawFaceLandmark(rgbMat, points, new Scalar(0, 255, 0, 255), 2);
+                DlibOpenCVUtils.DrawFaceLandmark(rgbMat, points, new Scalar(0, 255, 0, 255), 2);
 
                 //draw face rect
-                OpenCVForUnityUtils.DrawFaceRect(rgbMat, r.rect, new Scalar(255, 0, 0, 255), 2);
+                DlibOpenCVUtils.DrawFaceRect(rgbMat, r.rect, new Scalar(255, 0, 0, 255), 2);
             }
 
             Imgproc.putText(rgbMat, "W:" + rgbMat.width() + " H:" + rgbMat.height() + " SO:" + Screen.orientation, new Point(5, rgbMat.rows() - 10), Imgproc.FONT_HERSHEY_SIMPLEX, 1.5, new Scalar(0, 255, 0, 255), 2, Imgproc.LINE_AA, false);
 
-            OpenCVForUnity.UnityUtils.Utils.matToTexture2D(rgbMat, m_Texture);
+            OpenCVMatUtils.MatToTexture2D(rgbMat, m_Texture);
 
 
 

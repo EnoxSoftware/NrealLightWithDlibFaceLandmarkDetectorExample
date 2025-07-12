@@ -1,13 +1,13 @@
 #if !(PLATFORM_LUMIN && !UNITY_EDITOR)
 
 using DlibFaceLandmarkDetector;
-using NrealLightWithOpenCVForUnity.UnityUtils.Helper;
+using NrealLightWithOpenCVForUnity.UnityIntegration.Helper.Source2Mat;
 using NrealLightWithDlibFaceLandmarkDetectorExample.RectangleTrack;
 using OpenCVForUnity.CoreModule;
 using OpenCVForUnity.ImgprocModule;
 using OpenCVForUnity.ObjdetectModule;
-using OpenCVForUnity.UnityUtils;
-using OpenCVForUnity.UnityUtils.Helper;
+using OpenCVForUnity.UnityIntegration;
+using OpenCVForUnity.UnityIntegration.Helper.Source2Mat;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -15,6 +15,8 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Rect = OpenCVForUnity.CoreModule.Rect;
 using System.Threading;
+using OpenCVForUnity.UnityIntegration.Helper.Optimization;
+using DlibFaceLandmarkDetector.UnityIntegration;
 
 namespace NrealLightWithDlibFaceLandmarkDetectorExample
 {
@@ -205,13 +207,13 @@ namespace NrealLightWithDlibFaceLandmarkDetectorExample
 
             imageOptimizationHelper = gameObject.GetComponent<ImageOptimizationHelper>();
             webCamTextureToMatHelper = gameObject.GetComponent<NRCamTexture2MatHelper>();
-            webCamTextureToMatHelper.outputColorFormat = Source2MatHelperColorFormat.GRAY;
+            webCamTextureToMatHelper.OutputColorFormat = Source2MatHelperColorFormat.GRAY;
             webCamTextureToMatHelper.Initialize();
 
             rectangleTracker = new RectangleTracker();
 
             dlibShapePredictorFileName = NrealLightWithDlibFaceLandmarkDetectorExample.dlibShapePredictorFileName;
-            dlibShapePredictorFilePath = DlibFaceLandmarkDetector.UnityUtils.Utils.getFilePath(dlibShapePredictorFileName);
+            dlibShapePredictorFilePath = DlibEnv.GetFilePath(dlibShapePredictorFileName);
             if (string.IsNullOrEmpty(dlibShapePredictorFilePath))
             {
                 Debug.LogError("shape predictor file does not exist. Please copy from “DlibFaceLandmarkDetector/StreamingAssets/DlibFaceLandmarkDetector/” to “Assets/StreamingAssets/DlibFaceLandmarkDetector/” folder. ");
@@ -219,7 +221,7 @@ namespace NrealLightWithDlibFaceLandmarkDetectorExample
             faceLandmarkDetector = new FaceLandmarkDetector(dlibShapePredictorFilePath);
 
 
-            dlibShapePredictorFilePath = DlibFaceLandmarkDetector.UnityUtils.Utils.getFilePath("DlibFaceLandmarkDetector/sp_human_face_6.dat");
+            dlibShapePredictorFilePath = DlibEnv.GetFilePath("DlibFaceLandmarkDetector/sp_human_face_6.dat");
             if (string.IsNullOrEmpty(dlibShapePredictorFilePath))
             {
                 Debug.LogError("shape predictor file does not exist. Please copy from “DlibFaceLandmarkDetector/StreamingAssets/DlibFaceLandmarkDetector/” to “Assets/StreamingAssets/DlibFaceLandmarkDetector/” folder. ");
@@ -257,11 +259,11 @@ namespace NrealLightWithDlibFaceLandmarkDetectorExample
             // Asynchronously retrieves the readable file path from the StreamingAssets directory.
             Debug.Log("Preparing file access...");
 
-            cascade_filepath = await DlibFaceLandmarkDetector.UnityUtils.Utils.getFilePathAsyncTask("OpenCVForUnity/objdetect/lbpcascade_frontalface.xml", cancellationToken: cts.Token);
-            cascade4Thread_filepath = await DlibFaceLandmarkDetector.UnityUtils.Utils.getFilePathAsyncTask("OpenCVForUnity/objdetect/haarcascade_frontalface_alt.xml", cancellationToken: cts.Token);
+            cascade_filepath = await DlibEnv.GetFilePathTaskAsync("OpenCVForUnityExample/objdetect/lbpcascade_frontalface.xml", cancellationToken: cts.Token);
+            cascade4Thread_filepath = await DlibEnv.GetFilePathTaskAsync("OpenCVForUnityExample/objdetect/haarcascade_frontalface_alt.xml", cancellationToken: cts.Token);
             dlibShapePredictorFileName = NrealLightWithDlibFaceLandmarkDetectorExample.dlibShapePredictorFileName;
-            dlibShapePredictor_filepath = await DlibFaceLandmarkDetector.UnityUtils.Utils.getFilePathAsyncTask(dlibShapePredictorFileName, cancellationToken: cts.Token);
-            dlibShapePredictor4Thread_filepath = await DlibFaceLandmarkDetector.UnityUtils.Utils.getFilePathAsyncTask("DlibFaceLandmarkDetector/sp_human_face_6.dat", cancellationToken: cts.Token);
+            dlibShapePredictor_filepath = await DlibEnv.GetFilePathTaskAsync(dlibShapePredictorFileName, cancellationToken: cts.Token);
+            dlibShapePredictor4Thread_filepath = await DlibEnv.GetFilePathTaskAsync("DlibFaceLandmarkDetector/sp_human_face_6.dat", cancellationToken: cts.Token);
 
             Debug.Log("Preparing file access complete!");
 
@@ -275,14 +277,14 @@ namespace NrealLightWithDlibFaceLandmarkDetectorExample
             cascade.load(cascade_filepath);
             if (cascade.empty())
             {
-                Debug.LogError("cascade file is not loaded. Please copy from “OpenCVForUnity/StreamingAssets/OpenCVForUnity/objdetect/” to “Assets/StreamingAssets/OpenCVForUnity/objdetect/” folder. ");
+                Debug.LogError("cascade file is not loaded. Please copy from “OpenCVForUnity/StreamingAssets/OpenCVForUnityExample/objdetect/” to “Assets/StreamingAssets/OpenCVForUnityExample/objdetect/” folder. ");
             }
 
             cascade4Thread = new CascadeClassifier();
             cascade4Thread.load(cascade4Thread_filepath);
             if (cascade4Thread.empty())
             {
-                Debug.LogError("cascade file is not loaded. Please copy from “OpenCVForUnity/StreamingAssets/OpenCVForUnity/objdetect/” to “Assets/StreamingAssets/OpenCVForUnity/objdetect/” folder. ");
+                Debug.LogError("cascade file is not loaded. Please copy from “OpenCVForUnity/StreamingAssets/OpenCVForUnityExample/objdetect/” to “Assets/StreamingAssets/OpenCVForUnityExample/objdetect/” folder. ");
             }
 
             if (string.IsNullOrEmpty(dlibShapePredictor_filepath))
@@ -297,7 +299,7 @@ namespace NrealLightWithDlibFaceLandmarkDetectorExample
             }
             faceLandmarkDetector4Thread = new FaceLandmarkDetector(dlibShapePredictor4Thread_filepath);
 
-            webCamTextureToMatHelper.outputColorFormat = Source2MatHelperColorFormat.GRAY;
+            webCamTextureToMatHelper.OutputColorFormat = Source2MatHelperColorFormat.GRAY;
             webCamTextureToMatHelper.Initialize();
         }
         //////
@@ -330,23 +332,23 @@ namespace NrealLightWithDlibFaceLandmarkDetectorExample
 
             /*
             cascade = new CascadeClassifier();
-            cascade.load(Utils.getFilePath("OpenCVForUnity/objdetect/lbpcascade_frontalface.xml"));
+            cascade.load(OpenCVEnv.GetFilePath("OpenCVForUnityExample/objdetect/lbpcascade_frontalface.xml"));
 #if !UNITY_WSA_10_0 || UNITY_EDITOR
             // "empty" method is not working on the UWP platform.
             if (cascade.empty())
             {
-                Debug.LogError("cascade file is not loaded. Please copy from “OpenCVForUnity/StreamingAssets/OpenCVForUnity/objdetect/” to “Assets/StreamingAssets/OpenCVForUnity/objdetect/” folder. ");
+                Debug.LogError("cascade file is not loaded. Please copy from “OpenCVForUnity/StreamingAssets/OpenCVForUnityExample/objdetect/” to “Assets/StreamingAssets/OpenCVForUnityExample/objdetect/” folder. ");
             }
 #endif
 
             grayMat4Thread = new Mat();
             cascade4Thread = new CascadeClassifier();
-            cascade4Thread.load(Utils.getFilePath("OpenCVForUnity/objdetect/haarcascade_frontalface_alt.xml"));
+            cascade4Thread.load(OpenCVEnv.GetFilePath("OpenCVForUnityExample/objdetect/haarcascade_frontalface_alt.xml"));
 #if !UNITY_WSA_10_0 || UNITY_EDITOR
             // "empty" method is not working on the UWP platform.
             if (cascade4Thread.empty())
             {
-                Debug.LogError("cascade file is not loaded. Please copy from “OpenCVForUnity/StreamingAssets/OpenCVForUnity/objdetect/” to “Assets/StreamingAssets/OpenCVForUnity/objdetect/” folder. ");
+                Debug.LogError("cascade file is not loaded. Please copy from “OpenCVForUnity/StreamingAssets/OpenCVForUnityExample/objdetect/” to “Assets/StreamingAssets/OpenCVForUnityExample/objdetect/” folder. ");
             }
 #endif
             */
@@ -419,7 +421,7 @@ namespace NrealLightWithDlibFaceLandmarkDetectorExample
                 if (enableDownScale)
                 {
                     downScaleMat = imageOptimizationHelper.GetDownScaleMat(grayMat);
-                    DOWNSCALE_RATIO = imageOptimizationHelper.downscaleRatio;
+                    DOWNSCALE_RATIO = imageOptimizationHelper.DownscaleRatio;
                 }
                 else
                 {
@@ -452,7 +454,7 @@ namespace NrealLightWithDlibFaceLandmarkDetectorExample
                     rectangleTracker.GetObjects(resultObjects, true);
 
                     // set original size image
-                    OpenCVForUnityUtils.SetImage(faceLandmarkDetector, grayMat);
+                    DlibOpenCVUtils.SetImage(faceLandmarkDetector, grayMat);
 
                     resultFaceLandmarkPoints.Clear();
                     foreach (Rect rect in resultObjects)
@@ -480,14 +482,14 @@ namespace NrealLightWithDlibFaceLandmarkDetectorExample
                         // draw face rects
                         foreach (Rect rect in resultObjects)
                         {
-                            OpenCVForUnityUtils.DrawFaceRect(grayMat, new UnityEngine.Rect(rect.x, rect.y, rect.width, rect.height), COLOR_GRAY, 2);
+                            DlibOpenCVUtils.DrawFaceRect(grayMat, new UnityEngine.Rect(rect.x, rect.y, rect.width, rect.height), COLOR_GRAY, 2);
                         }
                     }
 
                     // draw face landmark points
                     foreach (List<Vector2> points in resultFaceLandmarkPoints)
                     {
-                        OpenCVForUnityUtils.DrawFaceLandmark(grayMat, points, COLOR_WHITE, 4);
+                        DlibOpenCVUtils.DrawFaceLandmark(grayMat, points, COLOR_WHITE, 4);
                     }
                 }
                 else
@@ -532,7 +534,7 @@ namespace NrealLightWithDlibFaceLandmarkDetectorExample
                     rectangleTracker.GetObjects(resultObjects, false);
 
                     // set original size image
-                    OpenCVForUnityUtils.SetImage(faceLandmarkDetector, grayMat);
+                    DlibOpenCVUtils.SetImage(faceLandmarkDetector, grayMat);
 
                     resultFaceLandmarkPoints.Clear();
                     foreach (Rect rect in resultObjects)
@@ -563,18 +565,18 @@ namespace NrealLightWithDlibFaceLandmarkDetectorExample
                         // draw face rects
                         foreach (Rect rect in resultObjects)
                         {
-                            OpenCVForUnityUtils.DrawFaceRect(grayMat, new UnityEngine.Rect(rect.x, rect.y, rect.width, rect.height), COLOR_GRAY, 2);
+                            DlibOpenCVUtils.DrawFaceRect(grayMat, new UnityEngine.Rect(rect.x, rect.y, rect.width, rect.height), COLOR_GRAY, 2);
                         }
                     }
 
                     // draw face landmark points
                     foreach (List<Vector2> points in resultFaceLandmarkPoints)
                     {
-                        OpenCVForUnityUtils.DrawFaceLandmark(grayMat, points, COLOR_WHITE, 4);
+                        DlibOpenCVUtils.DrawFaceLandmark(grayMat, points, COLOR_WHITE, 4);
                     }
                 }
 
-                Utils.matToTexture2D(grayMat, texture);
+                OpenCVMatUtils.MatToTexture2D(grayMat, texture);
             }
 
             if (webCamTextureToMatHelper.IsPlaying())
@@ -691,7 +693,7 @@ namespace NrealLightWithDlibFaceLandmarkDetectorExample
 
         private void DetectObject(Mat img, out List<Rect> detectedObjects, FaceLandmarkDetector landmarkDetector)
         {
-            OpenCVForUnityUtils.SetImage(landmarkDetector, img);
+            DlibOpenCVUtils.SetImage(landmarkDetector, img);
 
             List<UnityEngine.Rect> detectResult = landmarkDetector.Detect();
 
@@ -757,7 +759,7 @@ namespace NrealLightWithDlibFaceLandmarkDetectorExample
             {
                 img1_roi.copyTo(img1);
 
-                OpenCVForUnityUtils.SetImage(landmarkDetector, img1);
+                DlibOpenCVUtils.SetImage(landmarkDetector, img1);
 
                 List<UnityEngine.Rect> detectResult = landmarkDetector.Detect();
 
@@ -893,7 +895,7 @@ namespace NrealLightWithDlibFaceLandmarkDetectorExample
         /// </summary>
         public void OnChangeCameraButtonClick()
         {
-            webCamTextureToMatHelper.requestedIsFrontFacing = !webCamTextureToMatHelper.requestedIsFrontFacing;
+            webCamTextureToMatHelper.RequestedIsFrontFacing = !webCamTextureToMatHelper.RequestedIsFrontFacing;
         }
 
         /// <summary>
